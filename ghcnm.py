@@ -91,6 +91,12 @@ def get_data(data_file, my_stns):
     ### initialise arrays
     country_codes = np.zeros( nlines*12 ).astype(int)
     stn_id  = [] # np.chararray(nlines*12, itemsize=11)
+    country  = [] # these will be replaced (see below)
+    name     = [] #
+    station  = []
+    lat      = [] #
+    lon      = [] #
+    elev     = [] #
     year    = np.zeros( nlines*12 ).astype(int)
     month   = np.zeros( nlines*12 ).astype(int)
     element = [] # np.chararray(nlines*12, itemsize=4)
@@ -99,10 +105,14 @@ def get_data(data_file, my_stns):
     qcflag  = [] # np.chararray( nlines*12, itemsize=1)
     dsflag  = [] # np.chararray( nlines*12, itemsize=1)
 
+    # Fast access for station indices
+    stn_dict = dict([(row['station'], n) for (n, row) in my_stns.iterrows()])
+
     ### Loop through all lines in input file
     i = 0 ### start iteration from zero
 
-    for line_tmp in lines:
+    for index, line_tmp in enumerate(lines):
+        print(str(index / len(lines)))
 
         ### return a string of the correct width, left-justified
         line = line_tmp.ljust(linewidth)
@@ -113,6 +123,14 @@ def get_data(data_file, my_stns):
         for m in range(0,12):
 
             stn_id.append( line[0:11] )
+            idx_stn = stn_dict[int(stn_id[-1])]
+            country.append(my_stns['country'][idx_stn])
+            name.append(my_stns['name'][idx_stn])
+            station.append(my_stns['station'][idx_stn])
+            lat.append(my_stns['lat'][idx_stn])
+            lon.append(my_stns['lon'][idx_stn])
+            elev.append(my_stns['elev'][idx_stn])
+
             country_codes[i] = line[0:3]
             year[i]    = line[11:15]
             month[i]   = m+1
@@ -138,12 +156,12 @@ def get_data(data_file, my_stns):
 
     ### Convert to Pandas DataFrame
     df = pd.DataFrame()
-    df['country']  = stn_id # these will be replaced (see below)
-    df['name']     = stn_id #
-    df['station']  = stn_id
-    df['lat']      = stn_id #
-    df['lon']      = stn_id #
-    df['elev']     = stn_id #
+    df['country']  = country # these will be replaced (see below)
+    df['name']     = name #
+    df['station']  = station
+    df['lat']      = lat #
+    df['lon']      = lon #
+    df['elev']     = elev #
     df['year']     = year
     df['month']    = month
     df['variable'] = element
@@ -153,12 +171,14 @@ def get_data(data_file, my_stns):
     df['dsflag']   = dsflag
     df = df.replace( float(missing_id), np.nan )
 
-    ### add metadata (by replacing temporarily stored station ids)
-    for index, row in my_stns.iterrows():
-        df = df.replace({'country': row['station']}, row['country'])
-        df = df.replace({'name':    row['station']}, row['name']   )
-        df = df.replace({'lon':     row['station']}, row['lon']    )
-        df = df.replace({'lat':     row['station']}, row['lat']    )
-        df = df.replace({'elev':    row['station']}, row['elev']   )
+    # ### add metadata (by replacing temporarily stored station ids)
+    # for index, row in my_stns.iterrows():
+    #     print(str(index / len(my_stns)))
+    #     print(row['station'])
+    #     df = df.replace({'country': row['station'], ''}, row['country'])
+    #     df = df.replace({'name':    row['station']}, row['name']   )
+    #     df = df.replace({'lon':     row['station']}, row['lon']    )
+    #     df = df.replace({'lat':     row['station']}, row['lat']    )
+    #     df = df.replace({'elev':    row['station']}, row['elev']   )
 
     return df
