@@ -15,7 +15,7 @@ all_stns = ghcnm.extract_countries(stn_md, all_names)
 
 data = ghcnm.get_data(data_fname, all_stns)
 
-data_prime = data[['lat', 'lon', 'elev', 'month', 'value']].dropna()
+data_prime = data[['lat', 'lon', 'elev', 'year', 'month', 'value']].dropna()
 data_prime.to_csv('global_station_data.csv', index=False)
 
 
